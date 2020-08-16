@@ -12,7 +12,7 @@
 #' @return a named vector containing the percentage diversity,
 #' the true entropy of the dataset,
 #' and the potential entropy of the dataset
-#' ( diversity, entropy, potential.entropy )
+#' ( diversity, entropy, potential_entropy )
 #' @export
 #' @examples
 #' diversity(cars)
@@ -28,42 +28,34 @@ diversity <- function( data, ... ) try({
   } else if( is.vector( data ) ) {
     d <- diversity_vector( data )
   } else {
-    stop('data must be a data.frame or vector', call. = FALSE)
+    stop( 'data must be a data.frame or vector', call. = FALSE )
   }
-  return( diversity_plugin( d$fullsize, d$groups ))
+  return( diversity_plugin( d$fullsize, d$groups, ... ) )
 })
 
 #' Diversity Vector Helper
-#'
 #' @param data a vector
-#'
 #' @return list with fullsize and group to use in diversity plugin
 #' @keywords internal
 diversity_vector <- function( data ){
-  return(
-    list(
-      'fullsize' = length(data),
-      'groups' = as.data.frame(table(data)) %>%
-        select('count' = 'Freq') %>%
-        unlist()
-    )
+  list(
+    'fullsize' = length( data ),
+    'groups' = as.data.frame( table( data ) ) %>%
+      dplyr::select( 'count' = 'Freq' ) %>%
+      unlist()
   )
 }
 
 #' Diversity Data Frame Helper
-#'
 #' @param data a data frame
-#'
 #' @return list with fullsize and group to use in diversity plugin
 #' @keywords internal
 diversity_data_frame <- function( data ) {
-  return(
-    list(
-      'fullsize' = nrow(data),
-      'groups' = unique_counts(data) %>%
-        select('count') %>%
-        unlist()
-    )
+  list(
+    'fullsize' = nrow( data ),
+    'groups' = unique_counts( data ) %>%
+      dplyr::select( 'count' ) %>%
+      unlist()
   )
 }
 
@@ -79,43 +71,41 @@ diversity_data_frame <- function( data ) {
 #' unique_counts( iris, include_percent = TRUE )
 unique_counts <- function( data, include_percent = TRUE ) try({
   # validation checks
-  stopifnot( 'data must be a data.frame' = is.data.frame(data) )
+  stopifnot( 'data must be a data.frame' = is.data.frame( data ) )
 
   # get all unique group counts in data
-  grouped_data <- data %>% group_by_all()
+  grouped_data <- data %>% dplyr::group_by_all()
   if( include_percent == TRUE ) {
-    grouped_data <- grouped_data %>% summarise( count = n() , percent = round ( count / nrow( data ), 3 ) )
+    grouped_data <- grouped_data %>% dplyr::summarise( count = dplyr::n() , percent = round ( count / nrow( data ), 3 ) )
   } else {
-    grouped_data <- grouped_data %>% summarise( count = n() )
+    grouped_data <- grouped_data %>% dplyr::summarise( count = dplyr::n() )
   }
-  return( grouped_data %>% ungroup() )
+  return( grouped_data %>% dplyr::ungroup() )
 })
 
 #' Diversity Work Plugin
-#'
 #' @param fullSize the total number of entries in the data
 #' @param group_counts the count of occurrences for each unique value in the data
 #' @param ... arguments to the entropy function
-#'
 #' @return diversity of data, entropy of true distribution, potential entropy of uniformly distributed set
 #' @keywords internal
 diversity_plugin <- function( fullSize, group_counts, ... ){
 
   # count of unique groups
-  groupSize <- length(group_counts)
+  groupSize <- length( group_counts )
 
   # count by group for uniform distribution
   unifCount <- floor( fullSize / groupSize )
   unifDist <- rep( unifCount, groupSize )
 
   # entropy of uniformly distributed groups
-  unifEntropy <- entropy( y = unifDist, ... )
+  unifEntropy <- entropy::entropy( y = unifDist, ... )
 
   # true entropy of data groupings
-  groupEntropy <- entropy( y = group_counts, ... )
+  groupEntropy <- entropy::entropy( y = group_counts, ... )
 
   # diversity is the ratio of true entropy to uniform entropy
-  groupDiversity <- ifelse( unifEntropy != 0, groupEntropy / unifEntropy, 0)
+  groupDiversity <- ifelse( unifEntropy != 0, groupEntropy / unifEntropy, 0 )
 
   return( c( 'diversity' = groupDiversity, 'entropy' = groupEntropy, 'potential_entropy' = unifEntropy ) )
 }

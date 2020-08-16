@@ -10,8 +10,6 @@ unique_counts(data, include_percent = TRUE)
 \item{data}{a data frame or tibble type object}
 
 \item{include_percent}{whether a column should be added to show group percentages}
-
-\item{.checkAssertions}{private variable used to check function assertions (if first in chain)}
 }
 \value{
 a grouped data frame of unique rows with column count ( and percent )

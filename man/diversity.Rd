@@ -15,7 +15,7 @@ diversity(data, ...)
 a named vector containing the percentage diversity,
 the true entropy of the dataset,
 and the potential entropy of the dataset
-( diversity, entropy, potential.entropy )
+( diversity, entropy, potential_entropy )
 }
 \description{
 Calculate the diversity of a dataset or vector by determining the degree to which
